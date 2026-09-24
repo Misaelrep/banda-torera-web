@@ -1,0 +1,769 @@
+/* ─── Site shell ─────────────────────────────────────────────── */
+
+.site {
+  --mx: 0;
+  --my: 0;
+  --heat: 0;
+  position: relative;
+  min-height: 100vh;
+  background: var(--black);
+  /* clip, not hidden: hidden would break position: sticky below */
+  overflow-x: clip;
+}
+
+/* ─── Atmosphere ─────────────────────────────────────────────── */
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.lightLayer {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(
+    calc(var(--mx) * var(--depth)),
+    calc(var(--my) * var(--depth)),
+    0
+  );
+}
+
+.lightFar {
+  --depth: -14px;
+}
+
+.lightNear {
+  --depth: -28px;
+}
+
+.lightWarm {
+  --depth: -20px;
+  opacity: var(--heat);
+}
+
+.light {
+  position: absolute;
+  width: 95vmax;
+  height: 95vmax;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+
+.lightRed {
+  left: -38vmax;
+  top: -44vmax;
+  background: radial-gradient(
+    closest-side,
+    rgba(163, 21, 24, 0.34),
+    rgba(163, 21, 24, 0.1) 55%,
+    transparent
+  );
+  animation: driftRed 42s ease-in-out infinite alternate;
+}
+
+.lightDeep {
+  right: -42vmax;
+  bottom: -52vmax;
+  background: radial-gradient(
+    closest-side,
+    rgba(112, 14, 18, 0.3),
+    rgba(112, 14, 18, 0.08) 60%,
+    transparent
+  );
+  animation: driftDeep 56s ease-in-out infinite alternate;
+}
+
+.lightAmber {
+  left: calc(50% - 47.5vmax);
+  top: 18vh;
+  background: radial-gradient(
+    closest-side,
+    rgba(212, 98, 42, 0.26),
+    rgba(163, 21, 24, 0.12) 50%,
+    transparent
+  );
+  animation: breathe 14s ease-in-out infinite alternate;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 120% 90% at 50% 45%,
+    transparent 45%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+.grain {
+  position: absolute;
+  inset: -10%;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  animation: grain 0.9s steps(6) infinite;
+}
+
+@keyframes driftRed {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+
+  to {
+    transform: translate3d(8vmax, 5vmax, 0) scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes driftDeep {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.05);
+    opacity: 1;
+  }
+
+  to {
+    transform: translate3d(-7vmax, -6vmax, 0) scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+@keyframes breathe {
+  from {
+    transform: scale(0.94);
+    opacity: 0.8;
+  }
+
+  to {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes grain {
+  0% { transform: translate3d(0, 0, 0); }
+  17% { transform: translate3d(-3%, 2%, 0); }
+  33% { transform: translate3d(2%, -4%, 0); }
+  50% { transform: translate3d(-5%, -2%, 0); }
+  67% { transform: translate3d(4%, 3%, 0); }
+  83% { transform: translate3d(-2%, 5%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ─── Sticky stage ───────────────────────────────────────────── */
+
+.archive {
+  /* desktop: 480svh ≈ 380svh of scroll while the stage holds */
+  --slot: min(40vw, 60svh);
+  --cx: 60%;
+  --cy: 53%;
+  --lw: min(90vw, 1280px, 190svh);
+  --cw: min(94vw, 150svh, 1560px);
+  position: relative;
+  z-index: 1;
+  height: 480svh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.header {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  left: 4%;
+  right: 4%;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 0 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--muted);
+}
+
+/* Parallax planes. TORERA and PRESENTE share a depth so the editorial word,
+   the red line and the logo stay registered while the cursor moves. */
+.depth {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translate3d(
+    calc(var(--mx) * var(--depth)),
+    calc(var(--my) * var(--depth)),
+    0
+  );
+}
+
+.depthTorera {
+  --depth: 10px;
+  z-index: 1;
+}
+
+.depthPresent {
+  --depth: 10px;
+  z-index: 4;
+}
+
+/* ─── TORERA ─────────────────────────────────────────────────── */
+
+.torera {
+  position: absolute;
+  left: 4%;
+  top: 21svh;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  /* ink ≈ 92% of the width at rest (Antonio TORERA ≈ 2.58em wide) */
+  font-size: min(35.6vw, 62svh);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--torera-red);
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.kicker {
+  position: absolute;
+  z-index: 2;
+  left: 4%;
+  top: calc(21svh + min(35.6vw, 62svh) * 0.135 - 30px);
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  color: var(--muted);
+}
+
+.introFoot {
+  position: absolute;
+  z-index: 3;
+  left: 4%;
+  right: 4%;
+  bottom: 7svh;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+.introLine {
+  height: 1px;
+  background: linear-gradient(90deg, var(--torera-red), var(--line) 30%);
+}
+
+.cue {
+  grid-column: 1 / -1;
+  justify-self: end;
+  margin-top: 18px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+
+/* ─── Year rail ──────────────────────────────────────────────── */
+
+.rail {
+  position: absolute;
+  z-index: 3;
+  left: 4%;
+  top: var(--cy);
+  height: 0;
+  opacity: 0;
+}
+
+.railTrack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  will-change: transform;
+}
+
+.year {
+  display: block;
+  height: 1em;
+  margin: 0.14em 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-size: clamp(38px, 4.2vw, 68px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ivory);
+  cursor: pointer;
+  opacity: 0.22;
+  transform-origin: 0 50%;
+  pointer-events: auto;
+}
+
+.year:focus-visible {
+  outline: 1px solid var(--torera-red);
+  outline-offset: 6px;
+}
+
+/* ─── Archive scene ──────────────────────────────────────────── */
+
+.sceneWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  perspective: 1600px;
+  perspective-origin: var(--cx) var(--cy);
+  pointer-events: none;
+}
+
+.scene {
+  position: absolute;
+  left: calc(var(--cx) - var(--slot) / 2);
+  top: calc(var(--cy) - var(--slot) / 2);
+  width: var(--slot);
+  height: var(--slot);
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--mx) * 4deg)) rotateX(calc(var(--my) * -3deg));
+}
+
+.thread {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(163, 21, 24, 0),
+    var(--torera-red) 6%,
+    var(--torera-red) 94%,
+    rgba(163, 21, 24, 0)
+  );
+  transform-origin: 0 50%;
+}
+
+.pulse {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 22%;
+  background: linear-gradient(90deg, transparent, #f2b48a, transparent);
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  background: var(--soft-black);
+  box-shadow:
+    0 50px 90px -40px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(238, 233, 223, 0.06);
+  will-change: transform, opacity;
+}
+
+.coverImage {
+  object-fit: cover;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: var(--black);
+  opacity: 0;
+}
+
+.corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(238, 233, 223, 0.55);
+  border-style: solid;
+  border-width: 0;
+}
+
+.cornerTL {
+  left: 14px;
+  top: 14px;
+  border-left-width: 1px;
+  border-top-width: 1px;
+}
+
+.cornerTR {
+  right: 14px;
+  top: 14px;
+  border-right-width: 1px;
+  border-top-width: 1px;
+}
+
+.cornerBL {
+  left: 14px;
+  bottom: 14px;
+  border-left-width: 1px;
+  border-bottom-width: 1px;
+}
+
+.cornerBR {
+  right: 14px;
+  bottom: 14px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+}
+
+.caption {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 20px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  width: 100%;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.captionYear {
+  display: none;
+}
+
+.captionTitle {
+  color: var(--ivory);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+}
+
+/* ─── PRESENTE ───────────────────────────────────────────────── */
+
+.comp {
+  --reveal: 0;
+  position: absolute;
+  left: calc(50% - var(--cw) / 2);
+  top: calc(52% - var(--cw) * 0.29104);
+  width: var(--cw);
+  aspect-ratio: 3436 / 2000;
+}
+
+.compGlow {
+  position: absolute;
+  inset: -18% -8% -6%;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 50% 48% at 50% 46%,
+    rgba(212, 98, 42, 0.34),
+    rgba(163, 21, 24, 0.14) 55%,
+    transparent 75%
+  );
+}
+
+.media {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 calc(var(--reveal) * 125% - 25%),
+    transparent calc(var(--reveal) * 125%)
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 calc(var(--reveal) * 125% - 25%),
+    transparent calc(var(--reveal) * 125%)
+  );
+}
+
+.logo {
+  position: absolute;
+  left: calc(50% - var(--lw) / 2);
+  top: calc(46% - var(--lw) * 0.19075);
+  width: var(--lw);
+  aspect-ratio: 1135 / 433;
+  clip-path: inset(0 100% 0 0);
+  transform-origin: 0 0;
+  will-change: transform, clip-path;
+}
+
+.logoImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sweep {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--torera-red) 14%,
+    var(--torera-red) 86%,
+    transparent
+  );
+  transform-origin: 50% 50%;
+}
+
+/* light the line leaves behind as it passes */
+.sweep::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 1px;
+  bottom: 0;
+  width: 110px;
+  background: linear-gradient(90deg, transparent, rgba(212, 98, 42, 0.12));
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+}
+
+/* ─── Closing ────────────────────────────────────────────────── */
+
+.closing {
+  position: relative;
+  z-index: 1;
+  width: min(1600px, 100%);
+  margin: 0 auto;
+  padding: clamp(110px, 16vw, 220px) 4vw 0;
+}
+
+.closingKicker {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  color: var(--muted);
+}
+
+.closingIndex {
+  margin: 0 0 34px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  color: var(--torera-red);
+}
+
+.closingTitle {
+  max-width: 11ch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(58px, 9vw, 148px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+.availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 34px;
+  min-height: 52px;
+  margin-top: clamp(40px, 5vw, 64px);
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--ivory);
+  color: var(--ivory);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  transition:
+    gap 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease;
+}
+
+.availability:hover {
+  gap: 48px;
+  color: var(--torera-red);
+  border-color: var(--torera-red);
+}
+
+.ending {
+  margin-top: clamp(90px, 12vw, 170px);
+  padding: 20px 0 32px;
+  border-top: 1px solid var(--line);
+  color: #57544e;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .archive {
+    --slot: min(78vw, 46svh);
+    --cx: 50%;
+    --cy: 57%;
+    --lw: 96vw;
+    --cw: 100vw;
+    height: 400svh;
+  }
+
+  .header {
+    padding-top: 22px;
+  }
+
+  .header span:last-child {
+    display: none;
+  }
+
+  .torera {
+    top: 20svh;
+  }
+
+  .kicker {
+    top: calc(20svh + min(35.6vw, 62svh) * 0.135 - 26px);
+    font-size: 10px;
+  }
+
+  .cue {
+    justify-self: start;
+  }
+
+  .rail {
+    left: 50%;
+    top: calc(var(--cy) - var(--slot) / 2 - 58px);
+  }
+
+  .railTrack {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .year {
+    margin: 0 0.18em;
+    font-size: 34px;
+    transform-origin: 50% 50%;
+  }
+
+  .caption {
+    top: calc(100% + 16px);
+    font-size: 9px;
+    gap: 5px 12px;
+  }
+}
+
+/* ─── Reduced motion: the same story, laid out statically ───── */
+
+@media (prefers-reduced-motion: reduce) {
+  .archive {
+    height: auto;
+  }
+
+  .stage {
+    position: relative;
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    padding: 120px 4% 0;
+  }
+
+  .depth,
+  .sceneWrap {
+    position: relative;
+    inset: auto;
+    transform: none;
+    perspective: none;
+  }
+
+  .torera,
+  .kicker {
+    position: relative;
+    left: auto;
+    top: auto;
+  }
+
+  .kicker {
+    order: -1;
+    margin-bottom: 8px;
+  }
+
+  .introFoot {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 32px 0 80px;
+  }
+
+  .cue,
+  .rail,
+  .thread,
+  .logo,
+  .sweep {
+    display: none;
+  }
+
+  .scene {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 96px 4vw;
+    transform: none;
+  }
+
+  .cover {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 1;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .caption {
+    opacity: 1;
+  }
+
+  .captionYear {
+    display: inline;
+    color: var(--ivory);
+  }
+
+  .comp {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    margin-top: 160px;
+  }
+
+  .compGlow {
+    opacity: 1;
+  }
+
+  .media {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .lightWarm {
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 760px) {
+  .scene {
+    grid-template-columns: 1fr;
+  }
+}
